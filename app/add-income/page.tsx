@@ -162,7 +162,7 @@ export default function AddIncome() {
           </div>
         </Card>
 
-        <Button type="submit" className="w-full gradient-button h-12" disabled={Object.keys(errors).length > 0}>
+        <Button type="submit" className="w-full gradient-button h-12" onClick={handleSubmit}>
           Save
         </Button>
       </form>
