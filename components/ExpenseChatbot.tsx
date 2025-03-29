@@ -91,7 +91,7 @@ export function ExpenseChatbot() {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer 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", // Replace with your OpenRouter API key
+          "Authorization": "Bearer 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", // Replace with your OpenRouter API key
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -99,7 +99,8 @@ export function ExpenseChatbot() {
           messages: updatedMessages.map(({ role, content }) => ({ role, content })),
         }),
       })
-
+      console.log(response);
+      
       if (!response.ok) throw new Error("Failed to get response")
 
       const data = await response.json()
