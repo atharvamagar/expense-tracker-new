@@ -20,15 +20,28 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    serverActions: {
+      validateRequestOrigin: false, // Disable strict origin validation for debugging
+    },
   },
+
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/",
         headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" }, // Allow all origins (dev only)
-          { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "X-Requested-With, Content-Type, Authorization",
+          },
         ],
       },
     ];
@@ -43,7 +56,10 @@ function mergeConfig(nextConfig, userConfig) {
   }
 
   for (const key in userConfig) {
-    if (typeof nextConfig[key] === "object" && !Array.isArray(nextConfig[key])) {
+    if (
+      typeof nextConfig[key] === "object" &&
+      !Array.isArray(nextConfig[key])
+    ) {
       nextConfig[key] = {
         ...nextConfig[key],
         ...userConfig[key],
