@@ -18,15 +18,18 @@ interface Income {
 export default function AllIncome() {
   const searchParams = useSearchParams()
   const [income, setIncome] = useState<Income[]>([])
-  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('month') || new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('currentMonth') ||new Date().toISOString().slice(0, 7))
   const [loading, setLoading] = useState(true)
 
+  
   useEffect(() => {
     async function fetchIncome() {
       try {
         const response = await fetch(`/api/income?month=${selectedMonth}`)
         if (!response.ok) throw new Error("Failed to fetch income")
         const data = await response.json()
+      console.log(data);
+      
         setIncome(data)
       } catch (error) {
         console.error("Error fetching income:", error)
@@ -37,7 +40,7 @@ export default function AllIncome() {
 
     fetchIncome()
   }, [selectedMonth])
-
+  
   return (
     <div className="container max-w-md mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">

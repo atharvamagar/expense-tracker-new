@@ -53,7 +53,8 @@ export async function getIncome(month: string) {
             $lte: endDate.toISOString().split('T')[0]
           }
         };
-        const income = await db.collection("income").find(query).toArray();
+      }
+      const income = await db.collection("income").find(query).toArray();
         const formattedIncome = income.map(inc => ({
           _id: inc._id.toString(),
           description: inc.description,
@@ -62,8 +63,9 @@ export async function getIncome(month: string) {
           category: inc.category,
           createdAt: new Date(inc.createdAt), // Ensure Date type
         }))
+        console.log("formattedIncome", formattedIncome);
+        
         return formattedIncome;
-      }
 
     } catch (error) {
         console.error("Error fetching income records:", error);

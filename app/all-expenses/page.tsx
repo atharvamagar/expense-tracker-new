@@ -26,9 +26,9 @@ const categoryIcons = {
 export default function AllExpenses() {
   const searchParams = useSearchParams()
   const [expenses, setExpenses] = useState<Expense[]>([])
-  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('month') || new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('currentMonth') ||new Date().toISOString().slice(0, 7))
   const [loading, setLoading] = useState(true)
-
+  
   useEffect(() => {
     async function fetchExpenses() {
       try {

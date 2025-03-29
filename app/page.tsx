@@ -12,6 +12,7 @@ import { format } from "date-fns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteTransaction } from "./actions/delete"
 import { getExpense, getIncome } from "./actions/getActions"
+import { useRouter } from "next/navigation"
 
 export interface Expense {
   _id: string; // Store as string because ObjectId is complex to handle in frontend
@@ -48,6 +49,9 @@ const categoryConfig: Record<string, CategoryData> = {
 export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [income, setIncome] = useState<Income[]>([])
+  // const[totalIncome,setTotalIncome] = useState(0)
+  // const [totalExpenses,setTotalExpenses] = useState(0)
+  // const[balance,setBalance] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -59,21 +63,21 @@ export default function Home() {
     async function fetchExpensesAndIncome() {
       try {
         setLoading(true)
-        const exp = await getExpense(currentMonth.toISOString().slice(0, 7))
-        const inc = await getIncome(currentMonth.toISOString().slice(0, 7))
-        
-        console.log("Income in useEffect:",inc);
-        
-        if (!exp) {
+
+        const expense = await fetch(`/api/expenses?month=${currentMonth}`)
+        const income = await fetch(`/api/income?month=${currentMonth}`)
+        const expenseData = await expense.json()
+        const incomeData = await income.json()
+              
+        if (!expense.ok) {
           throw new Error("Failed to fetch expenses")
         }
-        if (!inc) {
+        if (!income.ok) {
           throw new Error("Failed to fetch income")
         }
-
-        // const totalIncome = await inc.json()
-        setExpenses(exp as Expense[])
-        // setIncome(totalIncome as Income[])
+        setExpenses(expenseData)
+        setIncome(incomeData)
+        
       } catch (err) {
         setError("Error loading financial data")
         console.error("Error:", err)
@@ -102,15 +106,17 @@ export default function Home() {
     onSwipedRight: () => handleMonthChange(-1),
     trackMouse: true
   })
+  const router = useRouter()
 
   const handleDelete = async (id: string) => {
     try {
       const data = await DeleteTransaction(id)
       if (data.success) {
         alert("Transaction deleted successfully")
-        const refreshIncome = await fetch(`/api/income?month=${currentMonth.toISOString().slice(0, 7)}`);
-        const updatedIncome = await refreshIncome.json();
-        setIncome(updatedIncome);
+        // const refreshIncome = await fetch(`/api/income?month=${currentMonth.toISOString().slice(0, 7)}`);
+        // const updatedIncome = await refreshIncome.json();
+        setIncome(prevIncome => prevIncome.filter(item => item._id !== id));
+        router.push('/')
       }
     } catch (error) {
       console.log(error);
@@ -284,7 +290,7 @@ export default function Home() {
           <Card className="p-4">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Recent Income</h3>
-              <Link href="/all-income" className="text-xs text-blue-600">View All</Link>
+              <Link href={`/all-income?currentMonth=${currentMonth}`} className="text-xs text-blue-600">View All</Link>
             </div>
             <div className="space-y-3">
               {income.length === 0 ? (
@@ -324,7 +330,7 @@ export default function Home() {
   <div className="flex justify-between items-center">
     <h3 className="font-medium">Recent Transactions</h3>
     <Link 
-      href={`/all-expenses?month=${currentMonth.toISOString().slice(0, 7)}`} 
+     href={`/all-expenses?currentMonth=${currentMonth.toISOString().slice(0, 7)}`}  
       className="text-sm text-blue-600"
     >
       View All
