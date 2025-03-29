@@ -23,20 +23,6 @@ export async function DeleteTransaction(id: string) {
     }
 }
 
-export async function deleteExpenseCollection() {
-    try {
-        const client = await clientPromise;
-        const db = client.db("expenseTracker"); // Your database name
-
-        const result = await db.collection("income").drop(); // Drops the collection
-
-        return { success: true, message: "Collection deleted successfully" };
-    } catch (error) {
-        console.error("Error deleting collection:", error);
-        return { success: false, message: "Failed to delete collection" };
-    }
-}
-
 export async function DeleteExpense(id: string) {
     try {
         const client = await clientPromise;

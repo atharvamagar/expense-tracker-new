@@ -6,7 +6,6 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db("expenseTracker");
     const { description, amount, date, category } = await request.json();
-
     const income = {
       description,
       amount: Number.parseFloat(amount),
@@ -14,7 +13,6 @@ export async function POST(request: Request) {
       category,
       createdAt: new Date(),
     };
-
     const result = await db.collection("income").insertOne(income);
 
     return NextResponse.json({ message: "Income added successfully", id: result.insertedId });

@@ -10,7 +10,7 @@ import { useSwipeable } from "react-swipeable"
 import { motion, AnimatePresence } from "framer-motion"
 import { format } from "date-fns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DeleteTransaction } from "./actions/delete"
+import { DeleteExpense, DeleteTransaction } from "./actions/delete"
 import { getExpense, getIncome } from "./actions/getActions"
 import { useRouter } from "next/navigation"
 
@@ -109,13 +109,27 @@ export default function Home() {
   const router = useRouter()
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this transaction?")
+    if (!confirmDelete) return
     try {
       const data = await DeleteTransaction(id)
       if (data.success) {
         alert("Transaction deleted successfully")
-        // const refreshIncome = await fetch(`/api/income?month=${currentMonth.toISOString().slice(0, 7)}`);
-        // const updatedIncome = await refreshIncome.json();
         setIncome(prevIncome => prevIncome.filter(item => item._id !== id));
+        router.push('/')
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const handleDeletetransaction = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this transaction?")
+    if (!confirmDelete) return
+    try { 
+      const data = await DeleteExpense(id)
+      if (data.success) {
+        alert("Transaction deleted successfully")
+        setExpenses(prevExpenses => prevExpenses.filter(item => item._id !== id));
         router.push('/')
       }
     } catch (error) {
@@ -125,9 +139,7 @@ export default function Home() {
 
   useEffect(() => {
     const now = new Date()
-    setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1))
-  
-    
+    setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1))  
   }, [])
 
   const handleMonthChange = (increment: number) => {
@@ -365,7 +377,7 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <p className="font-semibold text-red-500">-₹{expense.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                 <button 
-                  onClick={() => handleDelete(expense._id)}
+                  onClick={() => handleDeletetransaction(expense._id)}
                   className="text-red-500 hover:text-red-700 text-sm"
                 >
                   ❌

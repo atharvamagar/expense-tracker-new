@@ -134,7 +134,7 @@ export function ExpenseChatbot() {
       >
         <Button 
           onClick={() => setIsOpen(true)} 
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 border-2 border-white"
+          className="fixed bottom-10 right-[43%] lg:right-[47%] lg:bottom-8 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 border-2 border-white"
         >
           <MessageCircle size={24} />
         </Button>
