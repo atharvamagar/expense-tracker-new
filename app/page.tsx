@@ -78,18 +78,17 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [direction, setDirection] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
-  console.log("Current Month: ", currentMonth);
 
   useEffect(() => {
-    async function fetchExpensesAndIncome() {
+    const  fetchExpensesAndIncome = async() => {
       try {
         setLoading(true);
-
+        const formattedMonth = format(currentMonth, "yyyy-MM");
         const expense = await fetch(`/api/expenses?month=${currentMonth}`);
-        const income = await fetch(`/api/income?month=${currentMonth}`);
+        const income = await fetch(`/api/income?month=${formattedMonth}`);
         const expenseData = await expense.json();
         const incomeData = await income.json();
-
+        
         if (!expense.ok) {
           throw new Error("Failed to fetch expenses");
         }
