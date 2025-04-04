@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { format } from "date-fns";
 import { ShoppingBag, Utensils, Book, AmbulanceIcon as FirstAid, Bus } from "lucide-react"
 
 interface Expense {
@@ -26,15 +27,18 @@ const categoryIcons = {
 export default function AllExpenses() {
   const searchParams = useSearchParams()
   const [expenses, setExpenses] = useState<Expense[]>([])
-  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('currentMonth') ||new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('currentMonth') || new Date())
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
     async function fetchExpenses() {
       try {
-        const response = await fetch(`/api/expenses?month=${selectedMonth}`)
+        console.log("Fetching expenses for month:", selectedMonth)
+        const response = await fetch(`/api/expenses?month=${selectedMonth}`);
+        console.log("Response:", response)
         if (!response.ok) throw new Error("Failed to fetch expenses")
         const data = await response.json()
+        console.log("Fetched expenses:", data)
         setExpenses(data)
       } catch (error) {
         console.error("Error fetching expenses:", error)
@@ -58,7 +62,7 @@ export default function AllExpenses() {
       <div className="mb-4">
         <input
           type="month"
-          value={selectedMonth}
+          value={format(new Date(selectedMonth), "yyyy-MM")}
           onChange={(e) => setSelectedMonth(e.target.value)}
           className="w-full p-2 border rounded"
         />

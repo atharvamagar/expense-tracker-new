@@ -18,7 +18,7 @@ interface Income {
 export default function AllIncome() {
   const searchParams = useSearchParams()
   const [income, setIncome] = useState<Income[]>([])
-  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('currentMonth') ||new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(searchParams.get('formattedMonth') ||new Date().toISOString().slice(0, 7))
   const [loading, setLoading] = useState(true)
 
   

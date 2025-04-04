@@ -91,7 +91,7 @@ export function ExpenseChatbot() {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer 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", // Replace with your OpenRouter API key
+          "Authorization": "Bearer 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", // Replace with your OpenRouter API key
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

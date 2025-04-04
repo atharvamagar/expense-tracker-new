@@ -26,6 +26,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DeleteExpense, DeleteTransaction } from "./actions/delete";
 import { getExpense, getIncome } from "./actions/getActions";
 import { useRouter } from "next/navigation";
+import { signIn, signOut } from "../auth";
+import GitHub from "next-auth/providers/github";
+import { login } from "@/lib/actions/auth";
+import { auth } from "../auth";
 
 export interface Expense {
   _id: string; // Store as string because ObjectId is complex to handle in frontend
@@ -70,9 +74,6 @@ const categoryConfig: Record<string, CategoryData> = {
 export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [income, setIncome] = useState<Income[]>([]);
-  // const[totalIncome,setTotalIncome] = useState(0)
-  // const [totalExpenses,setTotalExpenses] = useState(0)
-  // const[balance,setBalance] = useState(0)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -80,15 +81,15 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    const  fetchExpensesAndIncome = async() => {
+    const fetchExpensesAndIncome = async () => {
       try {
         setLoading(true);
         const formattedMonth = format(currentMonth, "yyyy-MM");
-        const expense = await fetch(`/api/expenses?month=${currentMonth}`);
+        const expense = await fetch(`/api/expenses?month=${formattedMonth}`);
         const income = await fetch(`/api/income?month=${formattedMonth}`);
         const expenseData = await expense.json();
         const incomeData = await income.json();
-        
+
         if (!expense.ok) {
           throw new Error("Failed to fetch expenses");
         }
@@ -103,7 +104,7 @@ export default function Home() {
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchExpensesAndIncome();
   }, [currentMonth]);
@@ -129,7 +130,6 @@ export default function Home() {
     onSwipedRight: () => handleMonthChange(-1),
     trackMouse: true,
   });
-  const router = useRouter();
 
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm(
@@ -142,19 +142,20 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-  
+
       const data = await response.json();
-     setIncome((prevIncome) =>
-        prevIncome.filter((income) => income._id !== id)  
+      setIncome((prevIncome) =>
+        prevIncome.filter((income) => income._id !== id)
       );
       if (data.success) {
-        alert("Expense deleted successfully");
+        alert("Income deleted successfully");
       }
     } catch (error) {
       console.error("Error:", error);
       return { success: false, message: (error as Error).message };
     }
   };
+
   async function deleteExpense(id: string) {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this transaction?"
@@ -166,7 +167,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-  
+
       const data = await response.json();
       setExpenses((prevExpenses) =>
         prevExpenses.filter((expense) => expense._id !== id)
@@ -179,7 +180,6 @@ export default function Home() {
       return { success: false, message: (error as Error).message };
     }
   }
-  
 
   useEffect(() => {
     const now = new Date();
@@ -190,7 +190,6 @@ export default function Home() {
     setDirection(increment);
     const newDate = new Date(currentMonth);
     newDate.setMonth(newDate.getMonth() + increment);
-    console.log("New Date", newDate);
     setCurrentMonth(newDate);
   };
 
@@ -230,7 +229,7 @@ export default function Home() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src="/placeholder.svg" alt="User avatar" />
+            <AvatarImage src="/placeholder.svg" alt="User  avatar" />
             <AvatarFallback className="bg-blue-500 text-white">
               👤
             </AvatarFallback>
@@ -374,7 +373,7 @@ export default function Home() {
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-medium">Recent Income</h3>
               <Link
-                href={`/all-income?currentMonth=${currentMonth}`}
+                href={`/all-income?currentMonth=${format(currentMonth, "yyyy-MM")}`}
                 className="text-xs text-blue-600"
               >
                 View All
@@ -423,7 +422,7 @@ export default function Home() {
                           onClick={() => handleDelete(item._id)}
                           className="text-red-500 hover:text-red-700 text-sm"
                         >
-                          ❌
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -434,73 +433,73 @@ export default function Home() {
         </TabsContent>
 
         <TabsContent value="transactions" className="space-y-4 mt-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium">Recent Transactions</h3>
-            <Link
-              href={`/all-expenses?currentMonth=${currentMonth
-                .toISOString()
-                .slice(0, 7)}`}
-              className="text-sm text-blue-600"
-            >
-              View All
-            </Link>
-          </div>
+          <Card className="p-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium">Recent Transactions</h3>
+              <Link
+                href={`/all-expenses?currentMonth=${format(currentMonth, "yyyy-MM")}`}
+                className="text-sm text-blue-600"
+              >
+                View All
+              </Link>
+            </div>
 
-          <div className="space-y-3">
-            {expenses.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-gray-500 mb-4">
-                  No expenses recorded this month
-                </p>
-              </Card>
-            ) : (
-              expenses
-                .sort(
-                  (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
-                )
-                .slice(0, 5)
-                .map((expense) => {
-                  const category = expense.category || "other";
-                  const config =
-                    categoryConfig[category] || categoryConfig.other;
-                  const IconComponent = config.icon;
+            <div className="space-y-3">
+              {expenses.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-gray-500 mb-4">
+                    No expenses recorded this month
+                  </p>
+                </Card>
+              ) : (
+                expenses
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                  )
+                  .slice(0, 5)
+                  .map((expense) => {
+                    const category = expense.category || "other";
+                    const config =
+                      categoryConfig[category] || categoryConfig.other;
+                    const IconComponent = config.icon;
 
-                  return (
-                    <Card
-                      key={expense._id}
-                      className="p-4 flex items-center justify-between hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-full ${config.bgColor}`}>
-                          <IconComponent size={20} className={config.color} />
+                    return (
+                      <Card
+                        key={expense._id}
+                        className="p-4 flex items-center justify-between hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-3 rounded-full ${config.bgColor}`}>
+                            <IconComponent size={20} className={config.color} />
+                          </div>
+                          <div>
+                            <p className="font-medium">{expense.description}</p>
+                            <p className="text-xs text-gray-500">
+                              {format(new Date(expense.date), "dd MMM yyyy")}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{expense.description}</p>
-                          <p className="text-xs text-gray-500">
-                            {format(new Date(expense.date), "dd MMM yyyy")}
+                        <div className="flex items-center gap-3">
+                          <p className="font-semibold text-red-500">
+                            -₹
+                            {expense.amount.toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                            })}
                           </p>
+                          <button
+                            onClick={() => deleteExpense(expense._id)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Delete
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <p className="font-semibold text-red-500">
-                          -₹
-                          {expense.amount.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </p>
-                        <button
-                          onClick={() => deleteExpense(expense._id)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          ❌
-                        </button>
-                      </div>
-                    </Card>
-                  );
-                })
-            )}
-          </div>
+                      </Card>
+                    );
+                  })
+              )}
+            </div>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
